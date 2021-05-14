@@ -132,7 +132,7 @@ class UrlFilter final : public Module {
   hs_database_t *database;
   hs_scratch_t *scratch = NULL;
 
-  int keyword_length = 0;
+  std::vector<int> match_results;
 };
 
 #endif  // BESS_MODULES_URL_FILTER_H_

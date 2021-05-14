@@ -35,7 +35,6 @@
 #include <string>
 
 #include <hs.h>
-#include "aho_corasick_ascii.h"
 
 #include "../utils/checksum.h"
 #include "../utils/ether.h"
@@ -59,24 +58,14 @@ static int fullScanHandler(unsigned int id, unsigned long long from,
     return 0;
 }
 
-CommandResponse UrlFilter::Init(const bess::pb::EmptyArg &)
+CommandResponse UrlFilter::Init(const bess::pb::EmptyArg &) //
 {
-    /* Aho-Corasick Initalization 
-      Eventually this should take keywords associated with regex that are specified by the user
-    */
-    std::string keywords[] = {"he$", "The", "dog"};
-    keyword_length = sizeof(keywords) / sizeof(keywords[0]);
-    buildMatchingMachine(keywords, keyword_length);
-
-    /* Hyperscan Initalization 
-      Eventually this should take regex patterns specified by the user in the .bess configuration file
-    */
-    const std::vector<const char *> patterns{"^The", "home"};
+    /* hyperscan initalization */
+    const std::vector<const char *> patterns{"^The", "abc{2,5}"};
     const std::vector<unsigned int> ids{0, 1};
 
     hs_compile_error_t *compile_err;
 
-    /* compile multiple regex into database for scanning */
     if (hs_compile_multi(patterns.data(), NULL, ids.data(), patterns.size(), HS_MODE_BLOCK, NULL, &database,
                    &compile_err) != HS_SUCCESS) {
         hs_free_compile_error(compile_err);
@@ -188,20 +177,12 @@ void UrlFilter::ProcessBatch(Context *ctx, bess::PacketBatch *batch) {
       const char *buffer_data = buffer.buf();
       unsigned int buffer_length = sizeof(buffer_data);
 
-      // perform fast keyword scan, results will contain IDs if keywords were found in the payload
-      std::vector<int> results = searchKeywords(keyword_length, buffer_data);
-
-      std::vector<int> regex_match_results;
-
-      if (!results.empty()) {
-        // perform full scan if any keyword is matched during the fast scan
-        if (hs_scan(database, buffer_data, buffer_length, 0, scratch, fullScanHandler, nullptr) != HS_SUCCESS) {
-            hs_free_scratch(scratch);
-            hs_free_database(database);
-            std::cout << "scan failed" << std::endl;
-        }
+      /* perform full scan on reconstructed buffer data */
+      if (hs_scan(database, buffer_data, buffer_length, 0, scratch, fullScanHandler, nullptr) != HS_SUCCESS) {
+        hs_free_scratch(scratch);
+        hs_free_database(database);
+        std::cout << "scan failed" << std::endl;
       }
-
     }
 
   }

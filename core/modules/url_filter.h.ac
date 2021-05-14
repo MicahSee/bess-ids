@@ -132,7 +132,9 @@ class UrlFilter final : public Module {
   hs_database_t *database;
   hs_scratch_t *scratch = NULL;
 
-  int keyword_length = 0;
+  std::vector<int> match_results;
+  std::string keywords[5] = {"he", "she", "hers", "his", "&%^"};
+  int keyword_length;
 };
 
 #endif  // BESS_MODULES_URL_FILTER_H_

@@ -78,11 +78,11 @@ endif
 
 # We always want these libraries to be dynamically linked even when the
 # user requests a static build.
-ALWAYS_DYN_LIBS := -lpthread -ldl
+ALWAYS_DYN_LIBS := -lpthread -ldl -lgcc_s
 # These libraries are not supported by pkg-config.
 ALWAYS_LIBS := -lpcap -lgflags -lnuma
 # If pkg-config is available, we just need a list of the dependecies.
-PKG_CONFIG_DEPS := libglog protobuf grpc++ libunwind zlib
+PKG_CONFIG_DEPS := libglog protobuf grpc++ libunwind zlib libhs
 # If pkg-config is not available, we need to list the libs we depend on.
 NO_PKG_CONFIG_LIBS := -lglog -lgflags -lprotobuf -lgrpc++ -lunwind -lz
 # If pkg-config is not available and we're static linking, we also need
@@ -113,7 +113,7 @@ CXXFLAGS += -std=c++17 -g3 -ggdb3 -march=$(CPU) \
             -isystem $(DPDK_INC_DIR) -isystem $(COREDIR) \
             -isystem $(dir $<).. -isystem $(COREDIR)/modules \
             -D_GNU_SOURCE \
-            -Werror -Wall -Wextra -Wcast-align -Wno-error=deprecated-declarations \
+            -Wall -Wextra -Wcast-align -Wno-error=deprecated-declarations \
             -Wno-error=array-bounds \
             $(PKG_CFLAGS)
 
